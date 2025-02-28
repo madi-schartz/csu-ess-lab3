@@ -7,5 +7,17 @@ author:
 format: html
 editor: visual 
 ---
+###Question 1: 
 
+
+
+###Question 2: 
+```{r}
+data = read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+```
+
+###Question 3:
+```{r}
+pop_url <- 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2023/counties/totals/co-est2023-alldata.csv'
+```
 
