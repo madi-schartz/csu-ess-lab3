@@ -7,11 +7,12 @@ author:
 format: html
 editor: visual 
 ---
-###Question One : 
 
-The ability to have access to open data is extremely important as it gives equitable exposure to the trends within environmental science and health of society to the publics. It ensures that all the information we are being fed through the news has the accountability of transparency because we can fact check it for ourselves if its open data. 
+###Question One :
 
-###Question Two : 
+The ability to have access to open data is extremely important as it gives equitable exposure to the trends within environmental science and health of society to the publics. It ensures that all the information we are being fed through the news has the accountability of transparency because we can fact check it for ourselves if its open data.
+
+###Question Two :
 
 ```{r}
 covid = read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
@@ -48,7 +49,6 @@ filter(colorado, date == my.date) |>
   set_caption(caption = "Most New Cases")
 
 ```
-
 
 ###Question Three:
 
@@ -119,7 +119,8 @@ perCap |>
   set_caption(caption = "Most New Cases Per Capita")
 ```
 
-### Question Four : 
+### Question Four :
+
 ```{r}
 # Filter the merged COVID/Population data to only include the last 14 days. Remember this should be a programmatic request and not hard-coded. Then, use the group_by/summarize paradigm to determine the total number of new cases in the last 14 days per 100,000 people. Print a table of the top 5 counties, and, report the number that meet the watch list condition: “More than 100 new cases per 100,000 residents over the past 14 days…”
 
@@ -137,7 +138,8 @@ safe |>
   set_caption(caption = "Cases per 100,000 in the last 14 days")
 ```
 
-### Question Five: 
+### Question Five:
+
 ```{r}
 # Given we are assuming it is February 1st, 2022. Your leadership has asked you to determine what percentage of deaths in each county were attributed to COVID last year (2021). You eagerly tell them that with the current Census data, you can do this!
 
@@ -166,7 +168,8 @@ ggplot(x) +
   theme_light()
 ```
 
-###Question Six : 
+###Question Six :
+
 ```{r}
 # First, we need to group/summarize our county level data to the state level, filter it to the four states of interest, and calculate the number of daily new cases (diff/lag) and the 7-day rolling mean.
 
@@ -258,7 +261,8 @@ ggplot(perCapNewCasesRoll2, aes(x = date)) +
 ## A: The ability to overlay and scale the graphs put it into a better perspective to compare the states' seven day rolling average. The plot before made it look like New York and Ohio had the most amount of cases but the second plot shows that Colorado had the most cases in reality.
 ```
 
-### Question Seven : 
+### Question Seven :
+
 ```{r}
 # Please read in the data (readr::read_csv()); and join it to your raw COVID-19. For each date, calculate the Weighted Mean Xcoord and Ycoord and using the daily  cumulative cases and the weight. In addition, calculate the total cases for each day, as well as the month. 
 
@@ -288,7 +292,3 @@ ggplot(spatialdata) +
 
 ## A: The movement of Covid-19 through its weighted mean across the US depicted in the graph just created shows it mainly around central america and in the Midwest. I can assume possible drivers of this pattern is due to travel and areas where bulk of citizens didn't believe in mask usage or sanitary protocols to reduce the spread of the virus.
 ```
-
-
-
-
