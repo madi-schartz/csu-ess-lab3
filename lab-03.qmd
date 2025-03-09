@@ -7,21 +7,22 @@ author:
 format: html
 editor: visual 
 ---
+### Prep for lab 3
 ```{r}
 # Load the necessary libraries
-library(readr)  # This will allow you to use read_csv()
-library(dplyr)  # For data manipulation
+library(readr) 
+library(dplyr)  
 library(ggplot2)
 library(lubridate)
 library(zoo)
-library(flextable)# For plotting
+library(flextable)
 ```
 
-###Question One :
+### Question One :
 
 The ability to have access to open data is extremely important as it gives equitable exposure to the trends within environmental science and health of society to the publics. It ensures that all the information we are being fed through the news has the accountability of transparency because we can fact check it for ourselves if its open data.
 
-###Question Two :
+### Question Two :
 
 ```{r}
 covid = read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv') 
@@ -59,7 +60,7 @@ filter(colorado, date == my.date) |>
 
 ```
 
-###Question Three:
+### Question Three:
 
 ```{r}
 
@@ -82,13 +83,13 @@ dim(pop)
 nrow(pop)
 str (pop)
 
-## A: There are 3,144 observations within 19 variables, of which the first 3 column observations are character types,the next 10 are integer types, and the last six are number types.The names of the columns goes as follows: fips, state name, city name, population estimate in 2021, population change in 2021, births in 2021, deaths in 2021, natural change in 2021, international migration in 2021, domestic change in 2021, net migration in 2021, residual for 2021, GQ estimate for 2021, birth rates in 2021, death rates in 2021, natural change rates in 2021, international migration rates in 2021, domestic migration rates in 2021, and the net migration rates in 2021. 
+## Answer: There are 3,144 observations within 19 variables, of which the first 3 column observations are character types,the next 10 are integer types, and the last six are number types.The names of the columns goes as follows: fips, state name, city name, population estimate in 2021, population change in 2021, births in 2021, deaths in 2021, natural change in 2021, international migration in 2021, domestic change in 2021, net migration in 2021, residual for 2021, GQ estimate for 2021, birth rates in 2021, death rates in 2021, natural change rates in 2021, international migration rates in 2021, domestic migration rates in 2021, and the net migration rates in 2021. 
 
 # What is the range of populations seen in Colorado counties in 2021:
 
 range(pop$POPESTIMATE2021)
 
-## A: The range of populations in CO counties in 2021 is from 54 to 9,809,462
+## Answer: The range of populations in CO counties in 2021 is from 54 to 9,809,462
 
 
 # Join the population data to the Colorado COVID data and compute the per capita cumulative cases, per capita new cases, and per capita new deaths:
@@ -110,7 +111,7 @@ perCap |>
             totalnewcases = sum(newCasesPerCap),
             totalnewdeaths = sum(newDeathsPerCap))
 
-## A: The newly computed values of per capita cumulative cases in 2021 are 13.8, new cases are 0.05, and new deaths are 0.00036. 
+## Answer: The newly computed values of per capita cumulative cases in 2021 are 13.8, new cases are 0.05, and new deaths are 0.00036. 
 
 
 # Generate (2) new tables. The first should show the 5 counties with the most cumulative cases per capita on 2021-02-01, and the second should show the 5 counties with the most NEW cases per capita on the same date. Your tables should have clear column names and descriptive captions.
@@ -223,7 +224,7 @@ state_capita |>
   filter(state == "New York") |>
   summarize(sum(newCasesPerCap))
 
-## A: These steps have created new cases per capita in the states Colorado, Alabama, Ohio, and New York. The new numbers are 41.4 for Colorado, 14.5 for Alabama, 11.9 for Ohio, and 6.4 for New York. 
+## Answer: These steps have created new cases per capita in the states Colorado, Alabama, Ohio, and New York. The new numbers are 41.4 for Colorado, 14.5 for Alabama, 11.9 for Ohio, and 6.4 for New York. 
 
 ls(state_capita)
 
@@ -238,7 +239,7 @@ perCapNewCasesRoll = state_capita |>
 perCapNewCasesRoll <- perCapNewCasesRoll |>
   select(-CTYNAME)
 
-## A: This code has calculated the seven-day rolling mean into a new column named perCapNewCasesRoll
+## Answer: This code has calculated the seven-day rolling mean into a new column named perCapNewCasesRoll
 
 
 #Using the per capita data, plot the 7-day rolling averages overlying each other (one plot) with compelling labels, colors, and theme. 
@@ -267,7 +268,7 @@ ggplot(perCapNewCasesRoll2, aes(x = date)) +
 
 # Briefly describe the influence scaling by population had on the analysis? Does it make some states look better? Some worse? How so?
 
-## A: The ability to overlay and scale the graphs put it into a better perspective to compare the states' seven day rolling average. The plot before made it look like New York and Ohio had the most amount of cases but the second plot shows that Colorado had the most cases in reality.
+## Answer: The ability to overlay and scale the graphs put it into a better perspective to compare the states' seven day rolling average. The plot before made it look like New York and Ohio had the most amount of cases but the second plot shows that Colorado had the most cases in reality.
 ```
 
 ### Question Seven :
@@ -299,5 +300,5 @@ ggplot(spatialdata) +
 
 # In a few sentences, describe the movement of the COVID-19 weighted mean throughout the USA and possible drivers of its movement given your knowledge of the outbreak hot spots.
 
-## A: The movement of Covid-19 through its weighted mean across the US depicted in the graph just created shows it mainly around central america and in the Midwest. I can assume possible drivers of this pattern is due to travel and areas where bulk of citizens didn't believe in mask usage or sanitary protocols to reduce the spread of the virus.
+## Answer: The movement of Covid-19 through its weighted mean across the US depicted in the graph just created shows it mainly around central america and in the Midwest. I can assume possible drivers of this pattern is due to travel and areas where bulk of citizens didn't believe in mask usage or sanitary protocols to reduce the spread of the virus.
 ```
