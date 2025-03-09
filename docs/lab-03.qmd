@@ -3,21 +3,292 @@ title: "Lab 3: COVID-19"
 subtitle: 'Ecosystem Science and Sustainability 330'
 author:
   - name: Madi Schartz
-    email: Mads23@colostate.edu
+    email: Mmschartz04@gmail.com
 format: html
 editor: visual 
 ---
-###Question 1: 
+###Question One : 
 
+The ability to have access to open data is extremely important as it gives equitable exposure to the trends within environmental science and health of society to the publics. It ensures that all the information we are being fed through the news has the accountability of transparency because we can fact check it for ourselves if its open data. 
 
+###Question Two : 
 
-###Question 2: 
 ```{r}
-data = read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+covid = read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+# Creating Objects
+
+txt <- "2022-02-01"
+class(txt)
+
+my.date <- as.Date("2022-02-01")
+my.state <- "Colorado"
+
+# Start by making a subset that limits (filter) the data to Colorado and add a new column (mutate) with the daily new cases using diff/lag by county (group_by). Do the same for new deaths as well.
+
+colorado <- covid |>
+  filter(state == "Colorado") |>
+  group_by(county)|>
+  arrange(date) |>
+  mutate(new_cases = cases - lag(cases),
+         new_deaths = deaths - lag(deaths)) |>
+  ungroup()
+
+# Using your subset, generate (2) tables. The first should show the 5 counties with the most CUMULATIVE cases, and the second should show the 5 counties with the most NEW cases. Remember to use your my.date object as a proxy for today’s date
+  
+filter(colorado, date == my.date) |>
+  slice_max(cases, n=5) |>
+  select(Date = date, County = county, Cases = cases) |>
+  flextable() |>
+  set_caption("Most Total Cases")
+
+filter(colorado, date == my.date) |>
+  slice_max(cases, n=5) |>
+  select(Date = date, County = county, Cases = new_cases) |>
+  flextable() |>
+  set_caption(caption = "Most New Cases")
+
 ```
 
-###Question 3:
+
+###Question Three:
+
 ```{r}
+
+# Populating more data
+
 pop_url <- 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2023/counties/totals/co-est2023-alldata.csv'
+
+# Given the above URL, and guidelines on string concatenation and formatting, read in the population data and (1) create a five digit FIP variable and only keep columns that contain “NAME” or “2021” (remember the tidyselect option found with ?dplyr::select). Additionally, remove all state level rows (e.g. COUNTY FIP == “000”)
+
+pop <- read.csv(pop_url) |>
+  filter(COUNTY !=0) |>
+  mutate(fips = paste0(sprintf("%02d", STATE),
+                       sprintf("%03d", COUNTY))) |>
+  select(fips, contains('NAME'), contains('2021'))
+
+# Now, explore the data … what attributes does it have, what are the names of the columns? Do any match the COVID data we have? What are the dimensions… In a few sentences describe the data obtained after modification:
+
+names(pop)
+dim(pop)
+nrow(pop)
+str (pop)
+
+## A: There are 3,144 observations within 19 variables, of which the first 3 column observations are character types,the next 10 are integer types, and the last six are number types.The names of the columns goes as follows: fips, state name, city name, population estimate in 2021, population change in 2021, births in 2021, deaths in 2021, natural change in 2021, international migration in 2021, domestic change in 2021, net migration in 2021, residual for 2021, GQ estimate for 2021, birth rates in 2021, death rates in 2021, natural change rates in 2021, international migration rates in 2021, domestic migration rates in 2021, and the net migration rates in 2021. 
+
+# What is the range of populations seen in Colorado counties in 2021:
+
+range(pop$POPESTIMATE2021)
+
+## A: The range of populations in CO counties in 2021 is from 54 to 9,809,462
+
+
+# Join the population data to the Colorado COVID data and compute the per capita cumulative cases, per capita new cases, and per capita new deaths:
+
+pop2 <- pop |>
+  rename(state = STNAME)
+
+perCap = inner_join(colorado, select(pop,
+                                     fips,
+                                     pop = POPESTIMATE2021),
+                    by = 'fips') |>
+  filter(date == my.date) |>
+  mutate(cumPerCap = cases / pop,
+         newCasesPerCap = new_cases / pop,
+         newDeathsPerCap = new_deaths / pop)
+
+perCap |>
+  summarize(totalcumulativecases = sum(cumPerCap),
+            totalnewcases = sum(newCasesPerCap),
+            totalnewdeaths = sum(newDeathsPerCap))
+
+## A: The newly computed values of per capita cumulative cases in 2021 are 13.8, new cases are 0.05, and new deaths are 0.00036. 
+
+
+# Generate (2) new tables. The first should show the 5 counties with the most cumulative cases per capita on 2021-02-01, and the second should show the 5 counties with the most NEW cases per capita on the same date. Your tables should have clear column names and descriptive captions.
+
+perCap |>
+  select(County = county, Cases = cumPerCap) |>
+  slice_max(Cases, n=5) |>
+  flextable() |>
+  set_caption(caption = "Most Cumulative Cases Per Capita")
+
+perCap |> 
+  select(County = county, Cases = newCasesPerCap) |>
+  slice_max(Cases, n=5) |>
+  flextable() |>
+  set_caption(caption = "Most New Cases Per Capita")
 ```
+
+### Question Four : 
+```{r}
+# Filter the merged COVID/Population data to only include the last 14 days. Remember this should be a programmatic request and not hard-coded. Then, use the group_by/summarize paradigm to determine the total number of new cases in the last 14 days per 100,000 people. Print a table of the top 5 counties, and, report the number that meet the watch list condition: “More than 100 new cases per 100,000 residents over the past 14 days…”
+
+safe <- pop2 |>
+  inner_join(colorado, by = "fips") |>
+  filter(between(date, my.date - 13, my.date)) |>
+  group_by(county) |>
+  summarize(lag = sum(new_cases)/(POPESTIMATE2021[1]/100000)) |>
+  ungroup()
+
+safe |>
+  select(County = county, Cases = lag) |>
+  slice_max(Cases, n = 5) |>
+  flextable() |>
+  set_caption(caption = "Cases per 100,000 in the last 14 days")
+```
+
+### Question Five: 
+```{r}
+# Given we are assuming it is February 1st, 2022. Your leadership has asked you to determine what percentage of deaths in each county were attributed to COVID last year (2021). You eagerly tell them that with the current Census data, you can do this!
+
+# From previous questions you should have a data.frame with daily COVID deaths in Colorado and the Census based, 2021 total deaths. For this question, you will find the ratio of total COVID deaths per county (2021) of all recorded deaths. In a plot of your choosing, visualize all counties where COVID deaths account for 20% or more of the annual death toll.
+
+tmp.date = as.Date("2022-02-01")
+
+lubridate::year(tmp.date)
+
+lubridate::month(tmp.date)
+
+lubridate::yday(tmp.date)
+
+x <- colorado |>
+  mutate(year = lubridate::year(date)) |>
+  filter(year == 2021) |>
+  group_by(fips) |>
+  summarize(totdeaths = sum(new_deaths, na.rm = TRUE)) |>
+  left_join(pop, by = c("fips")) |>
+  mutate(death_ratio = 100 * (totdeaths / DEATHS2021)) |>
+  select(CTYNAME, totdeaths, DEATHS2021, death_ratio) |>
+  filter(death_ratio > 20)
+
+ggplot(x) +
+  geom_col(aes(x = death_ratio, y = CTYNAME)) +
+  theme_light()
+```
+
+###Question Six : 
+```{r}
+# First, we need to group/summarize our county level data to the state level, filter it to the four states of interest, and calculate the number of daily new cases (diff/lag) and the 7-day rolling mean.
+
+state_covid = covid |>
+  group_by(date, state) |>
+  summarize(cases = sum(cases)) |>
+  filter(state %in% c("New York", "Ohio", "Colorado", "Alabama")) |>
+  group_by(state) |>
+  mutate(NewCases = cases - lag(cases),
+         roll = zoo::rollmean(NewCases, k = 7, align = "right", fill = NA)) |>
+  ungroup()
+
+# Using the modified data, make a facet plot of the daily new cases and the 7-day rolling mean. Your plot should use compelling geoms, labels, colors, and themes. 
+
+ggplot(state_covid, aes(x = date)) +
+  geom_col(aes(y = NewCases), fill = "blue", col = NA) +
+  geom_line(aes(y = roll), col = "pink", size = 1) +
+  theme_linedraw() +
+  facet_wrap(~state, nrow = 2, scales = "free_y") +
+  labs(title = "Cumulative COVID Cases", x = "Date", y = "Case Count")
+
+# The story of raw case counts can be misleading. To understand why, lets explore the cases per capita of each state. To do this, join the state COVID data to the population estimates and calculate the newcases/totalpopulation. Additionally, calculate the 7-day rolling mean of the new cases per capita counts. This is a tricky task and will take some thought, time, and modification to existing code (most likely)! Hint: You may need to modify the columns you kept in your original population data. Be creative with how you join data (inner vs outer vs full)!
+
+state_capita <- inner_join(state_covid, pop2, by = "state") |>
+  filter(date == my.date) |>
+  mutate(cumPerCap = cases / POPESTIMATE2021,
+         newCasesPerCap = NewCases / POPESTIMATE2021)
+
+state_capita |>
+  filter(state == "Colorado") |>
+  summarize(sum(newCasesPerCap))
+
+state_capita |>
+  filter(state == "Alabama") |>
+  summarize(sum(newCasesPerCap))
+
+state_capita |>
+  filter(state == "Ohio") |>
+  summarize(sum(newCasesPerCap))
+
+state_capita |>
+  filter(state == "New York") |>
+  summarize(sum(newCasesPerCap))
+
+## A: These steps have created new cases per capita in the states Colorado, Alabama, Ohio, and New York. The new numbers are 41.4 for Colorado, 14.5 for Alabama, 11.9 for Ohio, and 6.4 for New York. 
+
+ls(state_capita)
+
+perCapNewCasesRoll = state_capita |>
+  group_by(date, state) |>
+  filter(state %in% c("New York", "Ohio", "Colorado", "Alabama")) |>
+  group_by(state) |>
+  mutate(newnewCasesPerCap = mean(sum(newCasesPerCap)),
+         roll = zoo::rollmean(newCasesPerCap, k = 7, align = "right", fill = NA)) |>
+  ungroup()
+
+perCapNewCasesRoll <- perCapNewCasesRoll |>
+  select(-CTYNAME)
+
+## A: This code has calculated the seven-day rolling mean into a new column named perCapNewCasesRoll
+
+
+#Using the per capita data, plot the 7-day rolling averages overlying each other (one plot) with compelling labels, colors, and theme. 
+
+state_capita2 <- inner_join(state_covid, pop2, by = "state") |>
+  mutate(cumPerCap = cases / POPESTIMATE2021,
+         newCasesPerCap = NewCases / POPESTIMATE2021)
+
+perCapNewCasesRoll2 = state_capita2 |>
+  group_by(date, state) |>
+  filter(state %in% c("New York", "Ohio", "Colorado", "Alabama")) |>
+  group_by(state) |>
+  mutate(newnewCasesPerCap = mean(sum(newCasesPerCap)),
+         roll = zoo::rollmean(newCasesPerCap, k = 7, align = "right", fill = NA)) |>
+  ungroup()
+
+perCapNewCasesRoll2 <- perCapNewCasesRoll2 |>
+  select(-CTYNAME)
+
+ggplot(perCapNewCasesRoll2, aes(x = date)) +
+  geom_line(aes(y = roll, color = state), size = 1) +  
+  theme_linedraw() +
+  scale_color_manual(values = c("red", "blue", "green", "orange")) +
+  labs(title = "7-Day Rolling Averages of New Cases", 
+       x = "Date", y = "New Cases Per Capita")
+
+# Briefly describe the influence scaling by population had on the analysis? Does it make some states look better? Some worse? How so?
+
+## A: The ability to overlay and scale the graphs put it into a better perspective to compare the states' seven day rolling average. The plot before made it look like New York and Ohio had the most amount of cases but the second plot shows that Colorado had the most cases in reality.
+```
+
+### Question Seven : 
+```{r}
+# Please read in the data (readr::read_csv()); and join it to your raw COVID-19. For each date, calculate the Weighted Mean Xcoord and Ycoord and using the daily  cumulative cases and the weight. In addition, calculate the total cases for each day, as well as the month. 
+
+spatialdata = read_csv('https://raw.githubusercontent.com/mikejohnson51/csu-ess-330/refs/heads/main/resources/county-centroids.csv') |>
+  inner_join(covid) |>
+  group_by(date) |>
+  summarize(Cases_WeightedMean_x = sum(LON*cases) / sum(cases),
+            Cases_WeightedMean_y = sum(LAT*cases) / sum(cases),
+            cases = sum(cases)) |>
+  arrange(date) |>
+  mutate(Month = format(date, "%m")) |>
+  mutate(d = 1:n())
+
+# Plot the weighted mean center (aes(x = LNG, y = LAT)), colored by month, and sized by total cases for each day. These points should be plotted over a map of the USA states which can be added to a ggplot object with: borders("state", fill = "gray90", colour = "white")
+
+ggplot(spatialdata) +
+  borders("state", fill = "gray90", colour = "white") +
+  geom_point(aes(x = Cases_WeightedMean_x, y = Cases_WeightedMean_y), 
+             color = "red", alpha = 0.25) +
+  labs(color = "Month",
+       size = "cases", 
+       x = "Longitude", y = "Latitude", 
+       title = "Weighted Center of Covid-19 Cases") +
+  theme(legend.position = "none")
+
+# In a few sentences, describe the movement of the COVID-19 weighted mean throughout the USA and possible drivers of its movement given your knowledge of the outbreak hot spots.
+
+## A: The movement of Covid-19 through its weighted mean across the US depicted in the graph just created shows it mainly around central america and in the Midwest. I can assume possible drivers of this pattern is due to travel and areas where bulk of citizens didn't believe in mask usage or sanitary protocols to reduce the spread of the virus.
+```
+
+
+
 
