@@ -7,6 +7,15 @@ author:
 format: html
 editor: visual 
 ---
+```{r}
+# Load the necessary libraries
+library(readr)  # This will allow you to use read_csv()
+library(dplyr)  # For data manipulation
+library(ggplot2)
+library(lubridate)
+library(zoo)
+library(flextable)# For plotting
+```
 
 ###Question One :
 
@@ -15,7 +24,7 @@ The ability to have access to open data is extremely important as it gives equit
 ###Question Two :
 
 ```{r}
-covid = read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+covid = read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv') 
 # Creating Objects
 
 txt <- "2022-02-01"
@@ -32,7 +41,7 @@ colorado <- covid |>
   arrange(date) |>
   mutate(new_cases = cases - lag(cases),
          new_deaths = deaths - lag(deaths)) |>
-  ungroup()
+  ungroup() 
 
 # Using your subset, generate (2) tables. The first should show the 5 counties with the most CUMULATIVE cases, and the second should show the 5 counties with the most NEW cases. Remember to use your my.date object as a proxy for today’s date
   
